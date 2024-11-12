@@ -10,7 +10,7 @@ with open("classes.names", "r", encoding="utf-8") as f:
     class_names = f.read().strip().split('\n')
 
 # Đọc video đầu vào
-cap = cv2.VideoCapture('test_anh/Chèo bẻo xám - Ashy Drongo bird.mp4')  # Thay 'video_input.mp4' bằng đường dẫn video của bạn
+cap = cv2.VideoCapture('Chèo bẻo xám - Ashy Drongo bird.mp4')  # Thay 'video_input.mp4' bằng đường dẫn video của bạn
 
 # Kiểm tra xem video có mở thành công không
 if not cap.isOpened():
