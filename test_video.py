@@ -6,7 +6,7 @@ import tensorflow as tf
 model = tf.keras.models.load_model('moblienetV3_200_clean.keras')
 
 # Đọc các lớp (class names)
-with open("test_anh/classes.names", "r", encoding="utf-8") as f:
+with open("classes.names", "r", encoding="utf-8") as f:
     class_names = f.read().strip().split('\n')
 
 # Đọc video đầu vào
