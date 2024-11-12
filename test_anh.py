@@ -1,37 +1,13 @@
-import cv2
 import numpy as np
 import tensorflow as tf
-import time
+from tensorflow.keras.preprocessing import image
+from tkinter import Tk, filedialog, messagebox
 
-# Tải mô hình đã lưu
-model = tf.keras.models.load_model(r'moblienetV3_200_clean.keras')
+# Load the model
+model = tf.keras.models.load_model('moblienetV3_200_clean.keras')
 
-
-# Hàm tiền xử lý ảnh
-def preprocess_frame(frame):
-    frame = cv2.resize(frame, (224, 224))  # Kích thước đầu vào của MobileNetV3
-    frame = frame / 255.0  # Chuẩn hóa dữ liệu
-    frame = np.expand_dims(frame, axis=0)  # Thêm chiều batch
-    return frame
-
-
-# Mở video
-cap = cv2.VideoCapture('test_anh/minh.mp4')  # Đường dẫn video của bạn
-
-while cap.isOpened():
-    ret, frame = cap.read()
-    if not ret:
-        break
-
-    # Tiền xử lý khung hình
-    input_frame = preprocess_frame(frame)
-
-    # Dự đoán
-    predictions = model.predict(input_frame)
-    predicted_class = np.argmax(predictions, axis=-1)
-
-    # Hiển thị kết quả
-    class_names = ['Bách thanh mày trắng', 'Bìm bịp lớn', 'Bói cá nhỏ', 'Bông lau mày trắng', 'Bạc má',
+# Define class names
+class_names = ['Bách thanh mày trắng', 'Bìm bịp lớn', 'Bói cá nhỏ', 'Bông lau mày trắng', 'Bạc má',
                'Bồ nông chân xám', 'Bồng chanh', 'Bồng chanh lam sáng', 'Chim Xanh Trán Vàng', 'Chim khách',
                'Chim manh', 'Chim sâu bụng vạch', 'Chim sâu lưng đỏ', 'Chim sâu mỏ lớn', 'Chiền chiện lớn',
                'Chiền chiện đầu nâu', 'Choi choi sông', 'Choắt lớn', 'Choắt nâu', 'Chèo bẻo', 'Chèo bẻo xám',
@@ -48,21 +24,42 @@ while cap.isOpened():
                'Sẻ bụi vàng', 'Sẻ bụi đen', 'Sẻ nhà', 'Sếu sarus', 'Te vặt', 'Trích cồ', 'Trảu họng vàng',
                'Trảu ngực nâu', 'Trảu đầu hung', 'Tu hú', 'Tìm vịt', 'Vành khuyên họng vàng', 'Vạc',
                'Vẹt đầu hồng', 'Vịt mốc', 'Vịt trời', 'Yểng', 'Yểng quạ', 'Ó cá', 'Đuôi cụt cánh xanh',
-               'Đớp ruồi nâu', 'Đớp ruồi xanh gáy đen', 'Đớp ruồi xanh xám']  # Danh sách tên các loài chim
-    label = class_names[predicted_class[0]]
+               'Đớp ruồi nâu', 'Đớp ruồi xanh gáy đen', 'Đớp ruồi xanh xám']
 
-    # Vẽ nhãn lên khung hình
-    cv2.putText(frame, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 2)
+def predict_image(image_path):
+    try:
+        img = image.load_img(image_path, target_size=(224, 224))
+        img_array = image.img_to_array(img)
+        img_array = tf.keras.applications.mobilenet_v3.preprocess_input(img_array)
+        img_array = np.expand_dims(img_array, axis=0)
 
-    # Hiển thị khung hình
-    cv2.imshow('Video', frame)
+        predictions = model.predict(img_array)
+        predicted_class = np.argmax(predictions, axis=1)[0]
+        predicted_label = class_names[predicted_class]
 
-    # Delay để điều chỉnh tốc độ xử lý
-    time.sleep(0.05)
+        return f"Image: {image_path} - Predicted label: {predicted_label}"
+    except Exception as e:
+        return f"Error processing {image_path}: {e}"
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
+def select_images():
+    Tk().withdraw()
+    file_paths = filedialog.askopenfilenames(title="Select Images for Prediction",
+                                             filetypes=[("Image files", "*.jpg *.jpeg *.png")])
 
-# Giải phóng tài nguyên
-cap.release()
-cv2.destroyAllWindows()
+    results = []
+    for file_path in file_paths:
+        result = predict_image(file_path)
+        results.append(result)
+
+    # Show results in a message box
+    messagebox.showinfo("Prediction Results", "\n".join(results))
+
+    # Save results to a text file
+    with open('frame.txt', 'w', encoding='utf-8') as f:
+        f.write("\n".join(results))
+
+def main():
+    select_images()
+
+if __name__ == "__main__":
+    main()
